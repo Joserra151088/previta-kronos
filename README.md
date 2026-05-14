@@ -1,255 +1,158 @@
-# 🏥 Previta — Sistema de Control de Acceso por Sucursales
+# Kronos — Sistema de Control de Acceso y Asistencia
 
-Aplicación web full-stack para gestionar el acceso y asistencia de empleados en múltiples sucursales, con geocercas GPS, módulo de auditoría, reportes detallados y configuración dinámica de empresa.
+**Previta S.A. de C.V.**
 
----
-
-## 📁 Estructura del Proyecto
-
-```
-access-control/
-├── backend/                         # API REST con Express.js
-│   ├── server.js                    # Punto de entrada; aplica middlewares globales
-│   ├── package.json
-│   └── src/
-│       ├── data/
-│       │   └── store.js             # Almacén en memoria (reemplazar por BD)
-│       ├── middleware/
-│       │   ├── auth.js              # Autenticación JWT
-│       │   ├── roles.js             # requireRoles() + constantes ROLES
-│       │   └── auditoria.middleware.js  # Intercepta res.json y guarda auditoría
-│       ├── routes/
-│       │   ├── auth.routes.js           # Login / perfil propio
-│       │   ├── sucursales.routes.js     # CRUD sucursales + geocerca
-│       │   ├── usuarios.routes.js       # CRUD empleados + subida de foto
-│       │   ├── registros.routes.js      # Registros de acceso + manual + mapa
-│       │   ├── reportes.routes.js       # Reportes exportables
-│       │   ├── incidencias.routes.js    # Solicitudes y aprobaciones
-│       │   ├── notificaciones.routes.js # Centro de notificaciones
-│       │   ├── horarios.routes.js       # CRUD horarios laborales
-│       │   ├── puestos.routes.js        # CRUD puestos + campos personalizados
-│       │   ├── grupos.routes.js         # Agrupación de sucursales
-│       │   ├── config.routes.js         # Configuración de roles y empresa
-│       │   └── auditoria.routes.js      # Consulta de bitácora de acciones
-│       ├── services/
-│       │   ├── notificaciones.service.js  # WebSocket / eventos en tiempo real
-│       │   └── storage.service.js         # Abstracción de almacenamiento (S3-ready)
-│       └── utils/
-│           ├── geo.js                # Fórmula de Haversine para geocercas
-│           ├── minutos.js            # Cálculo de minutos trabajados
-│           └── access-scope.js       # Alcance de acceso por sucursal/grupo
-│
-└── frontend/                        # SPA React + Vite
-    ├── index.html
-    ├── vite.config.js
-    ├── package.json
-    └── src/
-        ├── main.jsx                 # Entrada React; envuelve App con providers
-        ├── App.jsx                  # Router principal con rutas protegidas
-        ├── index.css                # Estilos globales (tema oscuro/claro + Previta)
-        ├── context/
-        │   ├── AuthContext.jsx      # Estado global de autenticación + JWT
-        │   ├── EmpresaContext.jsx   # Configuración dinámica de la empresa
-        │   ├── ThemeContext.jsx     # Gestor de temas: oscuro/claro/sistema/custom
-        │   ├── NotificacionesContext.jsx
-        │   └── SocketContext.jsx    # Conexión WebSocket para eventos en tiempo real
-        ├── components/
-        │   ├── Layout.jsx           # Sidebar + topbar + navegación responsiva
-        │   ├── ProtectedRoute.jsx   # Guarda de rutas por módulo/rol
-        │   ├── NotificationBell.jsx # Campana de notificaciones en tiempo real
-        │   ├── ThemeToggle.jsx      # Selector de tema (oscuro/claro/sistema/fondo)
-        │   └── FileUpload.jsx       # Componente reutilizable de subida de archivos
-        ├── pages/
-        │   ├── Login.jsx            # Pantalla de inicio de sesión con animación
-        │   ├── Dashboard.jsx        # Registro diario con GPS y progreso del día
-        │   ├── Eventos.jsx          # Feed en tiempo real de asistencia
-        │   ├── Sucursales.jsx       # Gestión de sucursales y geocercas
-        │   ├── Usuarios.jsx         # Gestión de empleados
-        │   ├── Registros.jsx        # Historial de registros + registro manual
-        │   ├── Incidencias.jsx      # Solicitudes y aprobaciones de incidencias
-        │   ├── Reportes.jsx         # Reportes de asistencia y minutos trabajados
-        │   ├── Notificaciones.jsx   # Centro de notificaciones
-        │   ├── Admin.jsx            # Panel de administración (horarios, puestos, roles, empresa)
-        │   ├── Grupos.jsx           # Agrupación de sucursales por región
-        │   ├── Mapa.jsx             # Mapa interactivo con filtros por grupo y estado
-        │   ├── Perfil.jsx           # Edición del perfil propio (foto, datos, contraseña)
-        │   └── Auditoria.jsx        # Bitácora de acciones del sistema (solo super_admin)
-        └── utils/
-            ├── api.js               # Capa completa de comunicación HTTP
-            ├── export.js            # Exportación a CSV/Excel
-            ├── minutos.js           # Helpers de formato de tiempo
-            └── module-access.js     # Permisos dinámicos de módulos por rol
-```
+Sistema de registro de asistencia con control de acceso por sucursal, geocercas GPS, notificaciones en tiempo real y reportes de minutos trabajados.
 
 ---
 
-## 🚀 Instrucciones de instalación
+## Stack tecnológico
 
-### Requisitos previos
-- **Node.js** v18 o superior
-- **npm** v9 o superior
+| Capa | Tecnología |
+|------|-----------|
+| Backend | Node.js + Express.js + Socket.io |
+| Frontend | React 18 + Vite |
+| Base de datos | MySQL 8 (AWS RDS) |
+| Autenticación | JWT + bcryptjs + 2FA (TOTP) |
+| Tiempo real | Socket.io |
 
-### 1. Instalar y levantar el Backend
+---
+
+## Requisitos previos
+
+- Node.js v18+
+- Acceso al RDS de AWS (misma instancia que Athenasys)
+- La base de datos `previta_kronos` creada en ese servidor
+
+---
+
+## Configuración inicial
+
+### 1. Crear la base de datos
+
+Conectarse al RDS y ejecutar el schema completo:
+
+```bash
+mysql -h <RDS_HOST> -u <USUARIO> -p < backend/schema.sql
+```
+
+### 2. Configurar variables de entorno
+
+```bash
+cp backend/.env.example backend/.env
+# Editar backend/.env con las credenciales del RDS
+```
+
+Variables obligatorias en `backend/.env`:
+
+```
+DB_HOST=<host_del_rds>
+DB_NAME=previta_kronos
+DB_USER=<usuario>
+DB_PASSWORD=<password>
+JWT_SECRET=<secreto_de_64_chars>
+ATHENASYS_DB_NAME=athenasys
+FRONTEND_URL=https://kronos.previta.com.mx
+```
+
+### 3. Ejecutar el seed (datos iniciales y usuarios)
 
 ```bash
 cd backend
 npm install
-npm run dev       # Con recarga automática (nodemon)
-# ó
-npm start         # Sin recarga automática
+node scripts/seed.js
 ```
 
-El servidor queda corriendo en: **http://localhost:4000**
+Esto limpia cualquier dato existente y crea:
+- Configuración de empresa Previta
+- **Super admin**: jose.estrada@previta.com.mx
+- 6 usuarios de prueba (uno por rol)
 
-### 2. Instalar y levantar el Frontend
+### 4. Instalar dependencias y ejecutar
 
 ```bash
-cd frontend
-npm install
-npm run dev
+# Backend
+cd backend && npm install && npm run dev
+
+# Frontend (en otra terminal)
+cd frontend && npm install && npm run dev
 ```
 
-El frontend queda disponible en: **http://localhost:5173** (o el puerto que asigne Vite)
+El backend corre en `http://localhost:4000`  
+El frontend corre en `http://localhost:5173`
 
 ---
 
-## 👥 Usuarios de prueba
+## Usuarios iniciales
 
-| Rol                        | Email                            | Contraseña | Acceso                              |
-|----------------------------|----------------------------------|------------|-------------------------------------|
-| 👑 Super Admin             | ana.garcia@empresa.com           | 123456     | Todo el sistema                     |
-| 🔧 Soporte TI              | luis.ramirez@empresa.com         | 123456     | Gestión técnica, horarios, puestos  |
-| 🏢 Supervisor Sucursales   | carlos.mendoza@empresa.com       | 123456     | Ver empleados, aprobar incidencias  |
-| 🩺 Médico Titular          | sofia.torres@empresa.com         | 123456     | Dashboard, incidencias, notificaciones |
-| 🩺 Médico de Guardia       | maria.lopez@empresa.com          | 123456     | Dashboard (selecciona sucursal al login) |
-| 📊 Control Asistencia      | roberto.fuentes@empresa.com      | 123456     | Registros manuales, reportes        |
-| 👁️ Visor Reportes          | patricia.morales@empresa.com     | 123456     | Solo lectura de reportes y mapa     |
+| Email | Rol | Contraseña inicial |
+|-------|-----|-------------------|
+| jose.estrada@previta.com.mx | Super Admin | Previta@Admin2026! |
+| soporte.ti@previta.com.mx | Agente Soporte TI | Previta@TI2026! |
+| supervisor@previta.com.mx | Supervisor Sucursales | Previta2026! |
+| asistencia@previta.com.mx | Agente Control Asistencia | Previta2026! |
+| visor@previta.com.mx | Visor Reportes | Previta2026! |
+| medico.titular@previta.com.mx | Médico Titular | Previta2026! |
+| medico.guardia@previta.com.mx | Médico de Guardia | Previta2026! |
 
----
-
-## 🔑 Funcionalidades
-
-### Registro de asistencia
-- ✅ 4 registros diarios obligatorios: entrada, salida a alimentos, regreso, salida final
-- ✅ Validación de geocerca circular con fórmula de Haversine
-- ✅ Cooldown de 1 hora entre registros para prevenir duplicados
-- ✅ **Registro manual** por agentes autorizados (agente_control_asistencia, supervisor, soporte_ti, super_admin)
-- ✅ Aprobación/rechazo de registros manuales por supervisores
-- ✅ Feed en tiempo real de eventos de asistencia (`/eventos`)
-
-### Gestión de personal
-- ✅ CRUD de empleados con foto de perfil
-- ✅ Asignación de puesto, sucursal, grupo y horario laboral
-- ✅ **Campos personalizados por puesto** (texto, número, fecha, selección)
-- ✅ Cada usuario puede editar su propio perfil (foto, email, teléfono, contraseña) en `/perfil`
-
-### Sucursales y geocercas
-- ✅ CRUD de sucursales con geocercas configurables (lat, lng, radio en metros)
-- ✅ Agrupación de sucursales por grupos/regiones
-- ✅ **Mapa interactivo** con filtros por grupo y estado de la república
-
-### Reportes y análisis
-- ✅ Reporte de asistencia por sucursal y fecha
-- ✅ **Minutos trabajados** con desglose por empleado y por día
-- ✅ Exportación a CSV/Excel
-- ✅ Tiempo trabajado en tiempo real para el empleado activo
-
-### Incidencias
-- ✅ Solicitud y gestión de incidencias (permisos, faltas, ajustes)
-- ✅ Flujo de aprobación/rechazo con comentarios
-
-### Administración
-- ✅ **Horarios laborales**: CRUD con horarios de alimentos incluidos
-- ✅ **Puestos**: CRUD con campos extra personalizados por puesto
-- ✅ **Configuración de roles**: Matriz de acceso a módulos por rol (dinámica)
-- ✅ **Configuración de empresa**: Nombre, RFC, dirección, logo (aparece en login y sidebar)
-
-### Seguridad y auditoría
-- ✅ Autenticación con **JWT** (expiración configurable, por defecto 8 horas)
-- ✅ Control de acceso por **roles** (7 roles con permisos granulares)
-- ✅ **Módulo de auditoría** (super_admin): bitácora completa de acciones con IP, usuario, fecha, método HTTP
-- ✅ Logs de auditoría filtrables por usuario, acción, fecha y método
-
-### Interfaz y experiencia
-- ✅ **Tema Previta**: colores corporativos verde (#77B328) y azul marino (#004269)
-- ✅ Selector de tema: Oscuro / Claro / Sistema (OS) / Fondo personalizado
-- ✅ Sidebar colapsable en desktop, hamburger en móvil
-- ✅ Perfil del usuario en la barra superior (foto, nombre, rol)
-- ✅ **Animación de bienvenida** al iniciar sesión
-- ✅ Notificaciones en tiempo real (WebSocket)
+> Cambiar todas las contraseñas después del primer acceso.
 
 ---
 
-## 📡 API Endpoints principales
+## Integración con Athenasys (cross-DB)
 
-| Método | Ruta                              | Descripción                             | Rol mínimo             |
-|--------|-----------------------------------|-----------------------------------------|------------------------|
-| POST   | /api/auth/login                   | Iniciar sesión                          | Público                |
-| GET    | /api/auth/me                      | Perfil del usuario actual               | Cualquiera             |
-| GET    | /api/sucursales                   | Listar sucursales                       | Cualquiera             |
-| POST   | /api/sucursales                   | Crear sucursal                          | super_admin            |
-| GET    | /api/usuarios                     | Listar empleados                        | supervisor+            |
-| POST   | /api/usuarios                     | Crear empleado                          | super_admin/soporte_ti |
-| PUT    | /api/usuarios/:id                 | Actualizar empleado / perfil propio     | gestión / propio       |
-| POST   | /api/usuarios/:id/foto            | Subir foto de perfil                    | propio / gestión       |
-| GET    | /api/registros                    | Listar registros (filtrados por rol)    | Cualquiera             |
-| POST   | /api/registros                    | Realizar siguiente registro del día     | Cualquiera             |
-| GET    | /api/registros/hoy                | Registros de hoy del usuario            | Cualquiera             |
-| POST   | /api/registros/manual             | Captura manual de asistencia            | agente_control+        |
-| GET    | /api/registros/reporte            | Reporte por sucursal y fecha            | supervisor+            |
-| GET    | /api/registros/minutos-empleados  | Minutos trabajados por empleado         | supervisor+            |
-| GET    | /api/registros/mapa               | Datos del mapa de sucursales activas    | supervisor+            |
-| GET    | /api/horarios                     | Listar horarios laborales               | Cualquiera autenticado |
-| POST   | /api/horarios                     | Crear horario                           | super_admin/soporte_ti |
-| GET    | /api/puestos                      | Listar puestos de trabajo               | Cualquiera autenticado |
-| PUT    | /api/puestos/:id/campos           | Actualizar campos extra de un puesto    | super_admin/soporte_ti |
-| GET    | /api/incidencias                  | Listar incidencias                      | rol gestión            |
-| GET    | /api/config/roles                 | Configuración de módulos por rol        | super_admin            |
-| PUT    | /api/config/roles/:rol            | Actualizar módulos de un rol            | super_admin            |
-| GET    | /api/config/empresa               | Datos de la empresa                     | Cualquiera autenticado |
-| PUT    | /api/config/empresa               | Actualizar datos de la empresa          | super_admin            |
-| PUT    | /api/config/empresa/logo          | Subir logo de la empresa                | super_admin            |
-| GET    | /api/auditoria                    | Consultar bitácora de acciones          | super_admin            |
-| GET    | /api/grupos                       | Listar grupos de sucursales             | supervisor+            |
+Kronos puede consultar en tiempo real los empleados y sucursales registrados en la base de datos `athenasys` del mismo servidor RDS mediante JOINs cross-DB.
+
+### Permisos necesarios en el RDS
+
+```sql
+GRANT SELECT ON athenasys.* TO 'tu_usuario'@'%';
+FLUSH PRIVILEGES;
+```
+
+### Configuración pendiente
+
+El servicio está en `backend/src/services/athenasys.service.js`.  
+Completar los nombres reales de tablas y columnas antes de activarlo:
+
+- `TABLA_EMPLEADOS_AQUI` → nombre real de la tabla de empleados en Athenasys
+- `TABLA_SUCURSALES_AQUI` → nombre real de la tabla de sucursales/centros
 
 ---
 
-## 🛰️ Geocercas
+## Roles del sistema
 
-Cada sucursal tiene una geocerca circular:
-- **Latitud y Longitud** del punto central
-- **Radio en metros** (ej: 200 m)
-
-Al registrar, el sistema usa la **fórmula de Haversine** para calcular la distancia entre el GPS del empleado y el centro. Si supera el radio, el registro es rechazado.
-
----
-
-## 🎨 Identidad visual (Previta)
-
-| Variable CSS        | Valor       | Uso                              |
-|---------------------|-------------|----------------------------------|
-| `--accent`          | `#77B328`   | Verde Previta — botones y activos |
-| `--accent2`         | `#8CC830`   | Verde claro (hover)              |
-| `--previta-navy`    | `#004269`   | Azul marino — overlay bienvenida |
-| Tema claro `--accent` | `#004269` | Azul marino para tema claro      |
+| Clave | Nombre | Acceso |
+|-------|--------|--------|
+| `super_admin` | Super Administrador | Total, sin restricciones |
+| `agente_soporte_ti` | Agente Soporte TI | Administración de plataforma |
+| `supervisor_sucursales` | Supervisor de Sucursales | Empleados y asistencias de sus sucursales |
+| `agente_control_asistencia` | Agente Control Asistencia | Registro y revisión de asistencias |
+| `visor_reportes` | Visor de Reportes | Solo lectura de reportes y mapas |
+| `medico_titular` | Médico Titular | Incidencias médicas de su sucursal |
+| `medico_de_guardia` | Médico de Guardia | Incidencias médicas sin sucursal fija |
 
 ---
 
-## 🔄 Migración a Base de Datos
+## Scripts disponibles
 
-Cuando quieras migrar a SQL/MySQL/PostgreSQL:
+```bash
+# Backend
+npm run dev          # Desarrollo con nodemon (puerto 4000)
+npm start            # Producción
 
-1. Instalar ORM: `npm install sequelize mysql2` (backend)
-2. Crear modelos: `Sucursal`, `Usuario`, `Registro`, `Horario`, `Puesto`, `Incidencia`, `AuditLog`
-3. Reemplazar las funciones en `backend/src/data/store.js` con llamadas al ORM
-4. Los **controladores (routes) no necesitan cambios**, ya que dependen de la interfaz del store
+# Administración de BD
+node scripts/seed.js # Reset completo + usuarios iniciales
+
+# Frontend
+npm run dev          # Desarrollo con HMR (puerto 5173)
+npm run build        # Build de producción
+npm run preview      # Preview del build
+```
 
 ---
 
-## 🔐 Seguridad
+## Capacidad
 
-- Autenticación con **JWT** (expiración: 8 horas)
-- Control de acceso por **7 roles** con permisos granulares y configurables
-- **Bitácora de auditoría** automática para todas las acciones de escritura
-- Contraseñas en texto plano solo en desarrollo — usar `bcrypt` en producción
-- Middleware de sanitización de datos sensibles (password/token/secret) en logs
+Plataforma dimensionada para **300 usuarios activos**.  
+Pool de conexiones (`DB_CONNECTION_LIMIT=20`) soporta la carga concurrente esperada.

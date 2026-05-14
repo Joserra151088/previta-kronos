@@ -1,59 +1,36 @@
 -- ============================================================
 --  KRONOS — Sistema de Control de Acceso y Asistencia
---  Schema de base de datos MySQL
+--  Previta S.A. de C.V.
 --
---  Versión : 1.1  (corregida para coincidir con el código)
---  Fecha   : 2026-03-17
+--  Base de datos : previta_kronos
+--  Versión       : 2.0 (limpia, producción)
+--  Fecha         : 2026-05-14
+--
+--  INTEGRACIÓN CROSS-DB
+--  ─────────────────────────────────────────────────────────
+--  Esta base de datos vive en el mismo servidor RDS que
+--  'athenasys'. Las consultas de empleados y sucursales
+--  pueden referenciar: athenasys.<tabla>
 --
 --  TIPOS DE ID
 --  ─────────────────────────────────────────────────────────
---  • Tablas de catálogo (roles, modulos, rol_modulo,
---    horario_dias, grupo_sucursales):
---      INT UNSIGNED AUTO_INCREMENT
---      El código no inserta un ID explícito en estas tablas;
---      MySQL asigna el número automáticamente.
+--  • Tablas de catálogo: INT UNSIGNED AUTO_INCREMENT
+--  • Tablas de datos   : VARCHAR(36) UUID (generado en JS)
 --
---  • Todas las demás tablas (usuarios, registros, etc.):
---      VARCHAR(36) — UUID generado por la aplicación en JS.
---      Ej: 'a1b2c3d4-5678-90ab-cdef-1234567890ab'
---      Esto permite crear IDs offline, sin depender de la BD.
---
---  CONVENCIONES GENERALES
+--  CONVENCIONES
 --  ─────────────────────────────────────────────────────────
 --  • Timestamps  : DATETIME DEFAULT CURRENT_TIMESTAMP
 --  • URLs S3     : VARCHAR(2048) — solo la URL, nunca el archivo
 --  • Booleans    : TINYINT(1)   (0 = false, 1 = true)
 --  • Enums       : ENUM(…)      para valores fijos y conocidos
 --  • snake_case  : todos los nombres de columna
---
---  ORDEN DE CREACIÓN (respeta dependencias FK)
---  ─────────────────────────────────────────────────────────
---   1. roles                  — catálogo de roles del sistema
---   2. modulos                — catálogo de módulos/vistas
---   3. rol_modulo             — permisos rol ↔ módulo  (N:M)
---   4. sucursales             — oficinas/locaciones
---   5. horarios               — turnos de trabajo
---   6. horario_dias           — días laborales por horario
---   7. puestos                — cargos de trabajo
---   8. puesto_campos_extra    — campos dinámicos por puesto
---   9. grupos                 — agrupaciones de sucursales
---  10. usuarios               — empleados y personal admin
---  11. grupo_sucursales       — sucursales de un grupo (N:M)
---  12. registros              — checkins de entrada/salida
---  13. tipos_incidencia       — catálogo de incidencias
---  14. incidencias            — ausencias y permisos
---  15. aclaraciones           — correcciones de registros
---  16. notificaciones         — alertas entre usuarios
---  17. auditoria_eventos      — log de acciones del sistema
---  18. empresa_config         — datos generales de la empresa
---  FK diferidas               — resuelven dependencias circulares
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS kronos
+CREATE DATABASE IF NOT EXISTS previta_kronos
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE kronos;
+USE previta_kronos;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -662,7 +639,7 @@ CREATE TABLE IF NOT EXISTS empresa_config (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci
   COMMENT = 'Configuración de la empresa. Singleton (solo id=1). Logo en AWS S3 (solo URL).';
 
-INSERT IGNORE INTO empresa_config (id, nombre) VALUES (1, 'Mi Empresa');
+INSERT IGNORE INTO empresa_config (id, nombre, razon_social, email) VALUES (1, 'Previta', 'Previta S.A. de C.V.', 'contacto@previta.com.mx');
 
 
 -- ============================================================
