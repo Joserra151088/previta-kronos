@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { getEmpresaConfig } from "../utils/api";
 
 const EmpresaContext = createContext(null);
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 const DEFAULT_EMPRESA = {
   nombre: "Kronos",

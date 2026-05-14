@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import { useEmpresa } from "../context/EmpresaContext";
 import { forgotPassword } from "../utils/api";
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 // Colores de marca Previta
 const C = {

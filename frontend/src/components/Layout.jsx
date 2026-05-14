@@ -8,7 +8,7 @@ import useSidebar from "../hooks/useSidebar";
 import { getModulesForUser } from "../utils/module-access";
 import { getUsuarios, getAnuncios, crearAnuncio, eliminarAnuncio, getPersonalHoy } from "../utils/api";
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 // ─── Estructura de navegación agrupada ────────────────────────────────────────
 // Cada entrada puede ser un ítem directo ({ to, label, icon, moduleKey })

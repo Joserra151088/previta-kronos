@@ -1,3 +1,4 @@
+import { SERVER_URL as BASE } from "../utils/config.js";
 /**
  * Incapacidades.jsx
  * Vista filtrada de incidencias de tipo "incapacidad" (categoriaBloqueo === "incapacidad").
@@ -209,7 +210,7 @@ const Incapacidades = () => {
                     </td>
                     <td>
                       {inc.archivoUrl ? (
-                        <a href={`http://localhost:4000${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
+                        <a href={`${BASE}${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
                           📄 Ver
                         </a>
                       ) : "—"}
@@ -333,9 +334,9 @@ const Incapacidades = () => {
                   <div className="detail-item detail-full">
                     <label>Documento médico</label>
                     {modalDetalle.archivoMime?.startsWith("image/") ? (
-                      <img src={`http://localhost:4000${modalDetalle.archivoUrl}`} alt="Documento" style={{ maxWidth: "100%", borderRadius: 8 }} />
+                      <img src={`${BASE}${modalDetalle.archivoUrl}`} alt="Documento" style={{ maxWidth: "100%", borderRadius: 8 }} />
                     ) : (
-                      <a href={`http://localhost:4000${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                      <a href={`${BASE}${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                         📄 Ver documento
                       </a>
                     )}

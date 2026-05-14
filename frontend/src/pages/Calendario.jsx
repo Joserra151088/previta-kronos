@@ -1,3 +1,4 @@
+import { SERVER_URL as BASE } from "../utils/config.js";
 /**
  * Calendario.jsx
  * ─────────────────────────────────────────────────────────────────────────────
@@ -345,7 +346,7 @@ const Calendario = () => {
                       >
                         {emp.fotoUrl ? (
                           <img
-                            src={`http://localhost:4000${emp.fotoUrl}`}
+                            src={`${BASE}${emp.fotoUrl}`}
                             alt={emp.nombre}
                             style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                           />

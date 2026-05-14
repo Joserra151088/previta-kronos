@@ -5,6 +5,7 @@
  */
 
 import { useRef, useState } from "react";
+import { SERVER_URL } from "../utils/config.js";
 
 const MIME_PERMITIDOS = new Set([
   "image/jpeg", "image/jpg", "image/png", "image/webp", "application/pdf",
@@ -110,7 +111,7 @@ const FileUpload = ({ onChange, archivoActual, label = "Adjuntar evidencia (imag
 
       {archivoActual && !nombre && (
         <div className="file-upload-existing">
-          <a href={`http://localhost:4000${archivoActual}`} target="_blank" rel="noopener noreferrer">
+          <a href={`${SERVER_URL}${archivoActual}`} target="_blank" rel="noopener noreferrer">
             📎 Ver archivo adjunto actual
           </a>
         </div>

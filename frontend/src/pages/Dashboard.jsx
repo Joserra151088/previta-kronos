@@ -13,7 +13,7 @@ import { getRegistrosHoy, crearRegistroConFoto, getSucursales, getHorarios } fro
 
 const MEDICO_GUARDIA_ROL = "medico_de_guardia";
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 const ETIQUETAS = {
   entrada:           { label: "Entrada",         icon: "🟢" },

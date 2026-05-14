@@ -7,8 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { actualizarUsuario, subirFotoEmpleado, get2FAStatus, setup2FA, confirm2FA, disable2FA } from "../utils/api";
 import { toastError } from "../utils/toast";
 
-const BASE = "http://localhost:4000";
-const API_BASE = "http://localhost:4000/api";
+import { SERVER_URL as BASE } from "../utils/config.js";
+import { API_URL as API_BASE } from "../utils/config.js";
 
 // ─── Validación de contraseña ─────────────────────────────────────────────────
 const PWD_RULES = [

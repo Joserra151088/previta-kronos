@@ -14,7 +14,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMapaSucursales, getGrupos } from "../utils/api";
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 const ROWS_PER_PAGE = 10;
 
 // Corrige el path de los íconos de Leaflet cuando se usa con bundlers

@@ -534,8 +534,8 @@ const Admin = ({ defaultTab = "puestos", visibleTabs = null }) => {
               style={{ width: 100, height: 100, border: "2px dashed var(--border)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", flexShrink: 0 }}
               onClick={() => logoInputRef.current?.click()}
             >
-              {(logoPreview || (logoUrl && `http://localhost:4000${logoUrl}`))
-                ? <img src={logoPreview || `http://localhost:4000${logoUrl}`} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              {(logoPreview || (logoUrl && `${BASE}${logoUrl}`))
+                ? <img src={logoPreview || `${BASE}${logoUrl}`} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 : <span style={{ fontSize: "2rem", color: "var(--text2)" }}>🏢</span>
               }
             </div>

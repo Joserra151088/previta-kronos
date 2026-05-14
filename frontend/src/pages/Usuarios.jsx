@@ -224,7 +224,7 @@ function calcularAntigüedad(fechaInicioActividades) {
   return "< 1 mes";
 }
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 const ROLES_DISPONIBLES = [
   { value: "medico_titular",            label: "Médico Titular" },

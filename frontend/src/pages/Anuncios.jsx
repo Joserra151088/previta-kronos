@@ -16,7 +16,7 @@ import {
 } from "../utils/api";
 import { toastError, toastExito, toastAviso, confirmar } from "../utils/toast";
 
-const BASE = "http://localhost:4000";
+import { SERVER_URL as BASE } from "../utils/config.js";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 

@@ -9,7 +9,7 @@ import { io } from "socket.io-client";
 
 const SocketContext = createContext(null);
 
-const SOCKET_URL = "http://localhost:4000";
+import { SERVER_URL as SOCKET_URL } from "../utils/config.js";
 
 export const SocketProvider = ({ children, usuario }) => {
   const socketRef = useRef(null);

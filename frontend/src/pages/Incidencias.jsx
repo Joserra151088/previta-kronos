@@ -1,3 +1,4 @@
+import { SERVER_URL as BASE } from "../utils/config.js";
 /**
  * Incidencias.jsx
  * - Empleados: ver sus incidencias + crear nueva con adjunto
@@ -222,7 +223,7 @@ const Incidencias = () => {
                   </td>
                   <td>
                     {inc.archivoUrl ? (
-                      <a href={`http://localhost:4000${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
+                      <a href={`${BASE}${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
                         {inc.archivoMime?.includes("pdf") ? "📄 PDF" : "🖼️ Imagen"}
                       </a>
                     ) : "—"}
@@ -351,9 +352,9 @@ const Incidencias = () => {
                   <div className="detail-item detail-full">
                     <label>Evidencia adjunta</label>
                     {modalDetalle.archivoMime?.startsWith("image/") ? (
-                      <img src={`http://localhost:4000${modalDetalle.archivoUrl}`} alt="Evidencia" style={{ maxWidth: "100%", borderRadius: 8 }} />
+                      <img src={`${BASE}${modalDetalle.archivoUrl}`} alt="Evidencia" style={{ maxWidth: "100%", borderRadius: 8 }} />
                     ) : (
-                      <a href={`http://localhost:4000${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                      <a href={`${BASE}${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                         📄 Ver PDF
                       </a>
                     )}
