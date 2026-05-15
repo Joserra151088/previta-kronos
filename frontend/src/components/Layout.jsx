@@ -15,6 +15,7 @@ import { SERVER_URL as BASE } from "../utils/config.js";
 // o un grupo ({ label, icon, children: [...ítems] })
 
 const NAV_ESTRUCTURA_ADMIN = [
+  { section: "Hoy" },
   { to: "/dashboard",   label: "Inicio",      icon: "🏠", moduleKey: "dashboard" },
   {
     label: "Eventos", icon: "📡",
@@ -26,6 +27,7 @@ const NAV_ESTRUCTURA_ADMIN = [
     ],
   },
   { to: "/calendario",  label: "Calendario",  icon: "📅", moduleKey: "calendario" },
+  { section: "Gestión" },
   { to: "/reportes",    label: "Reportes",    icon: "📊", moduleKey: "reportes" },
   { to: "/grupos",      label: "Grupos",      icon: "🔗", moduleKey: "grupos" },
   { to: "/mapa",        label: "Mapa",        icon: "🗺️", moduleKey: "mapa" },
@@ -42,6 +44,7 @@ const NAV_ESTRUCTURA_ADMIN = [
       { to: "/anuncios-admin", label: "Anuncios",    icon: "📢", moduleKey: "administracion" },
     ],
   },
+  { section: "Sistema" },
   {
     label: "Sistema", icon: "🖥️",
     children: [
@@ -604,10 +607,10 @@ const Layout = () => {
   // Filtrar la estructura de nav según módulos permitidos del usuario
   const estructuraFiltrada = NAV_ESTRUCTURA_ADMIN
     .map((entry) => {
+      if (entry.section) return entry; // section label always shown
       if (entry.children) {
-        // Filtrar hijos según módulos
         const hijosVisibles = entry.children.filter((c) => !c.moduleKey || modulosPermitidos.has(c.moduleKey));
-        if (hijosVisibles.length === 0) return null; // ocultar grupo vacío
+        if (hijosVisibles.length === 0) return null;
         return { ...entry, children: hijosVisibles };
       }
       if (entry.moduleKey && !modulosPermitidos.has(entry.moduleKey)) return null;
@@ -659,7 +662,7 @@ const Layout = () => {
   return (
     <div
       className={`layout ${collapsed ? "sidebar-is-collapsed" : ""}`}
-      style={{ paddingRight: 260 }}
+      style={{ paddingRight: 260, background: "var(--bone)" }}
     >
       <header className="mobile-header">
         <button className="hamburger-btn" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -677,13 +680,21 @@ const Layout = () => {
       <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""} ${mobileOpen ? "sidebar-open" : ""}`}>
         {/* Brand / toggle */}
         <div className="sidebar-brand">
-          {!collapsed && (
-            logoEmpresa
-              ? <img src={logoEmpresa} alt={nombreEmpresa} className="brand-logo" />
-              : <span className="brand-icon">🏢</span>
+          {logoEmpresa
+            ? <img src={logoEmpresa} alt={nombreEmpresa} className="brand-logo" />
+            : <div className="sidebar-k-mark">K</div>
+          }
+          {showLabels && (
+            <div className="sidebar-brand-text">
+              <span className="sidebar-product-name">KronOS</span>
+              <span className="sidebar-by-line">By <b>Previta</b></span>
+            </div>
           )}
-          {showLabels && <span className="brand-text">{nombreEmpresa}</span>}
-          <button className="sidebar-toggle-btn" onClick={toggle} title={collapsed ? "Expandir menú" : "Colapsar menú"}>
+          <button className="sidebar-toggle-btn" onClick={toggle} title={collapsed ? "Expandir menú" : "Colapsar menú"}
+            style={{ marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.45)", cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "4px 6px", borderRadius: 6, transition: "color 0.18s" }}
+            onMouseEnter={e => e.currentTarget.style.color = "white"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.45)"}
+          >
             {collapsed ? "›" : "‹"}
           </button>
         </div>
@@ -700,9 +711,13 @@ const Layout = () => {
               </NavLink>
             ))
           ) : (
-            // Vista admin: estructura agrupada
+            // Vista admin: estructura agrupada con labels de sección
             estructuraFiltrada.map((entry, i) =>
-              entry.children ? (
+              entry.section ? (
+                showLabels
+                  ? <div key={`section-${entry.section}`} className="nav-section-label">{entry.section}</div>
+                  : null
+              ) : entry.children ? (
                 <NavGroup
                   key={entry.label}
                   icon={entry.icon}
@@ -725,13 +740,32 @@ const Layout = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="btn-logout" onClick={handleLogout} title="Cerrar sesión">🚪</button>
+          {fotoUrl
+            ? <img src={fotoUrl} alt="avatar" className="sidebar-avatar" />
+            : (
+              <div className="sidebar-user-avatar">
+                {usuario?.nombre?.[0]?.toUpperCase()}{usuario?.apellido?.[0]?.toUpperCase()}
+              </div>
+            )
+          }
+          {showLabels && (
+            <div className="user-details" style={{ flex: 1, overflow: "hidden" }}>
+              <div className="user-name-sm">{usuario?.nombre} {usuario?.apellido}</div>
+              <div className="user-rol">{ROL_LABEL[usuario?.rol] || usuario?.rol}</div>
+            </div>
+          )}
+          <button className="btn-logout" onClick={handleLogout} title="Cerrar sesión"
+            style={{ marginLeft: showLabels ? 0 : "auto" }}
+          >🚪</button>
         </div>
       </aside>
 
       <main className="main-content">
         <div className="app-topbar">
-          <div className="app-topbar-spacer" />
+          <div style={{ fontSize: 11.5, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600 }}>
+            Previta <span style={{ margin: "0 8px", color: "var(--line)" }}>/</span>
+            KronOS
+          </div>
           <div className="app-topbar-actions">
             <ThemeToggle />
             <NotificationBell />
