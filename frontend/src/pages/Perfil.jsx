@@ -7,8 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { actualizarUsuario, subirFotoEmpleado, get2FAStatus, setup2FA, confirm2FA, disable2FA } from "../utils/api";
 import { toastError } from "../utils/toast";
 
-import { SERVER_URL as BASE } from "../utils/config.js";
-import { API_URL as API_BASE } from "../utils/config.js";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 // ─── Validación de contraseña ─────────────────────────────────────────────────
 const PWD_RULES = [

@@ -53,7 +53,7 @@ const verificarToken = (req, res, next) => {
  * @param {string|null} sucursalIdLogin - Sucursal de sesión para medico_de_guardia
  * @returns {string} JWT con expiración de 8 horas
  */
-const generarToken = (usuario, sucursalIdLogin = null) => {
+const generarToken = (usuario, sucursalIdLogin = null, puedeEditar = true) => {
   const sucursalId = sucursalIdLogin || usuario.sucursalId;
   return jwt.sign(
     {
@@ -62,6 +62,7 @@ const generarToken = (usuario, sucursalIdLogin = null) => {
       rol: usuario.rol,
       sucursalId,
       nombre: usuario.nombre,
+      puedeEditar,
     },
     JWT_SECRET,
     { expiresIn: "8h" }

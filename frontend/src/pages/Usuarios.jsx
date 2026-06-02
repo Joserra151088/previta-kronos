@@ -10,7 +10,7 @@ import {
   getUsuarios, getUsuariosPaginados, getPuestos, getSucursales, getHorarios,
   crearUsuario, actualizarUsuario, eliminarUsuario,
   subirFotoEmpleado, descargarPlantillaImportacion, importarUsuarios,
-  reset2FA, getAreas, verificarEmailDisponible,
+  reset2FA, getAreas, verificarEmailDisponible, getRoles,
 } from "../utils/api";
 import { getGrupos } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -224,9 +224,9 @@ function calcularAntigüedad(fechaInicioActividades) {
   return "< 1 mes";
 }
 
-import { SERVER_URL as BASE } from "../utils/config.js";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
-const ROLES_DISPONIBLES = [
+const ROLES_DISPONIBLES_DEFAULT = [
   { value: "medico_titular",            label: "Médico Titular" },
   { value: "medico_de_guardia",         label: "Médico de Guardia" },
   { value: "supervisor_sucursales",     label: "Supervisor de Sucursales" },
@@ -234,6 +234,8 @@ const ROLES_DISPONIBLES = [
   { value: "agente_soporte_ti",         label: "Agente Soporte TI" },
   { value: "visor_reportes",            label: "Visor de Reportes" },
   { value: "nominas",                   label: "Nóminas" },
+  { value: "desarrollo_organizacional", label: "Desarrollo Organizacional" },
+  { value: "administrador_general",     label: "Administrador General" },
   { value: "super_admin",               label: "Super Administrador" },
 ];
 
@@ -257,9 +259,71 @@ const FORM_VACIO = {
   datosExtra: {},
   jefeInmediatoId: "",
   area: "",
+  evaluacionesHabilitadas: true,
 };
 
-const SEXO_ICON = { masculino: "👨", femenino: "👩", otro: "🧑" };
+// ─── Iconos SVG para acciones ─────────────────────────────────────────────
+const IcoEdit = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+const IcoTrash = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+    <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+  </svg>
+);
+const IcoShield = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/>
+  </svg>
+);
+const IcoCam = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+const IcoBuilding = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 3, opacity: 0.6 }}>
+    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 22V12h6v10"/><path d="M3 9h18"/>
+  </svg>
+);
+const IcoCake = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 3, opacity: 0.6 }}>
+    <path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v2"/><path d="M12 8v2"/><path d="M17 8v2"/><path d="M7 4l.5 1"/><path d="M12 4l.5 1"/><path d="M17 4l.5 1"/>
+  </svg>
+);
+
+// ─── Avatar con iniciales coloreadas ──────────────────────────────────────
+const AVATAR_COLORS = [
+  "#4f7ec7","#5baa6b","#c47a3e","#9561b0",
+  "#c45b5b","#2e9fb3","#7a8c5b","#c47a7a","#3e7db3","#7a6baa",
+];
+function avatarColor(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function UserAvatar({ nombre = "", apellido = "", fotoUrl, size = 36 }) {
+  const initials = `${(nombre[0] || "").toUpperCase()}${(apellido[0] || "").toUpperCase()}` || "?";
+  const bg = avatarColor(`${nombre}${apellido}`);
+  if (fotoUrl) return null; // la <img> ya se renderiza por separado
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", background: bg,
+      color: "#fff", fontWeight: 700, fontSize: Math.round(size * 0.36),
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexShrink: 0, letterSpacing: "-0.5px", userSelect: "none",
+      border: "2px solid rgba(255,255,255,0.18)",
+    }}>
+      {initials}
+    </div>
+  );
+}
 
 const ROL_LABEL = {
   super_admin: "Super Admin",
@@ -271,6 +335,7 @@ const ROL_LABEL = {
   medico_titular: "Médico Titular",
   medico_de_guardia: "Médico Guardia",
   nominas: "Nóminas",
+  desarrollo_organizacional: "Desarrollo Org.",
 };
 
 // Roles que pueden ver todos los tabs
@@ -294,6 +359,7 @@ const Usuarios = () => {
   const [grupos, setGrupos]         = useState([]);
   const [horarios, setHorarios]     = useState([]);
   const [areas, setAreas]           = useState([]);
+  const [rolesDisponibles, setRolesDisponibles] = useState(ROLES_DISPONIBLES_DEFAULT);
   const [modal, setModal]           = useState(false);
   const [editando, setEditando]     = useState(null);
   const [form, setForm]             = useState(FORM_VACIO);
@@ -323,7 +389,7 @@ const Usuarios = () => {
   const rolActual = usuarioActual?.rol || "";
   const puedeVerTodos       = ROLES_VER_TODOS.includes(rolActual);
   const puedeVerCorporativo = ROLES_VER_CORPORATIVO.includes(rolActual);
-  const puedeGestionar      = ROLES_GESTIONAR.includes(rolActual);
+  const puedeGestionar      = ROLES_GESTIONAR.includes(rolActual) && (usuarioActual?.puedeEditar !== false);
 
   // El tab inicial depende del rol
   const tabInicial = puedeVerTodos ? "todos" : "sucursales";
@@ -376,12 +442,14 @@ const Usuarios = () => {
   // Resetear a página 1 cuando cambien los filtros
   useEffect(() => { setPagina(1); }, [tabActivo, filtroSucursal, filtroGrupo, busqueda]);
 
-  // ─── Catálogos auxiliares (sin paginación, caché larga) ──────────────
-  const { data: puestosData    } = useQuery({ queryKey: ["puestos"],    queryFn: getPuestos,    staleTime: 10 * 60 * 1000 });
-  const { data: sucursalesData } = useQuery({ queryKey: ["sucursales"], queryFn: getSucursales, staleTime: 10 * 60 * 1000 });
-  const { data: gruposData     } = useQuery({ queryKey: ["grupos"],     queryFn: getGrupos,     staleTime: 10 * 60 * 1000 });
-  const { data: horariosData   } = useQuery({ queryKey: ["horarios"],   queryFn: getHorarios,   staleTime: 10 * 60 * 1000 });
-  const { data: areasData      } = useQuery({ queryKey: ["areas"],      queryFn: getAreas,      staleTime: 10 * 60 * 1000 });
+  // ─── Catálogos auxiliares — staleTime corto para reflejar cambios inmediatamente ──
+  const CATALOGO_STALE = 30 * 1000; // 30 s: siempre frescos sin saturar el servidor
+  const { data: puestosData    } = useQuery({ queryKey: ["puestos"],    queryFn: getPuestos,    staleTime: CATALOGO_STALE, refetchOnMount: "always" });
+  const { data: sucursalesData } = useQuery({ queryKey: ["sucursales"], queryFn: getSucursales, staleTime: CATALOGO_STALE, refetchOnMount: "always" });
+  const { data: gruposData     } = useQuery({ queryKey: ["grupos"],     queryFn: getGrupos,     staleTime: CATALOGO_STALE, refetchOnMount: "always" });
+  const { data: horariosData   } = useQuery({ queryKey: ["horarios"],   queryFn: getHorarios,   staleTime: CATALOGO_STALE, refetchOnMount: "always" });
+  const { data: areasData      } = useQuery({ queryKey: ["areas"],      queryFn: getAreas,      staleTime: CATALOGO_STALE, refetchOnMount: "always" });
+  const { data: rolesData      } = useQuery({ queryKey: ["roles"],      queryFn: getRoles,      staleTime: CATALOGO_STALE, refetchOnMount: "always" });
 
   useEffect(() => {
     if (puestosData)    setPuestos(Array.isArray(puestosData)    ? puestosData    : []);
@@ -389,7 +457,10 @@ const Usuarios = () => {
     if (gruposData)     setGrupos(Array.isArray(gruposData)     ? gruposData     : []);
     if (horariosData)   setHorarios(Array.isArray(horariosData)   ? horariosData   : []);
     if (areasData)      setAreas(Array.isArray(areasData)      ? areasData      : []);
-  }, [puestosData, sucursalesData, gruposData, horariosData, areasData]);
+    if (rolesData && Array.isArray(rolesData) && rolesData.length > 0) {
+      setRolesDisponibles(rolesData.map((r) => ({ value: r.clave, label: r.nombre })));
+    }
+  }, [puestosData, sucursalesData, gruposData, horariosData, areasData, rolesData]);
 
   const cargarDatos = () => {
     queryClient.invalidateQueries({ queryKey: ["usuarios"] });
@@ -461,6 +532,7 @@ const Usuarios = () => {
       datosExtra:  u.datosExtra || {},
       jefeInmediatoId: u.jefeInmediatoId ?? "",
       area:           u.area ?? "",
+      evaluacionesHabilitadas: u.evaluacionesHabilitadas !== false,
     });
     setFotoPreview(u.fotoUrl ? `${BASE}${u.fotoUrl}` : null);
     setFotoFile(null);
@@ -589,11 +661,11 @@ const Usuarios = () => {
     }
   };
 
-  const handleEliminar = async (id) => {
-    if (!(await confirmar("¿Eliminar/desactivar este empleado? Esta acción no puede deshacerse fácilmente.", "Eliminar", "danger"))) return;
+  const handleEliminar = async (id, nombre) => {
+    if (!(await confirmar(`¿Eliminar permanentemente a "${nombre}"?\n\nEsta acción no se puede deshacer.`, "Eliminar", "danger"))) return;
     try {
       await eliminarUsuario(id);
-      toastExito("Empleado desactivado");
+      toastExito("Empleado eliminado correctamente");
       queryClient.invalidateQueries({ queryKey: ["usuarios"] });
     } catch (err) {
       toastError(err);
@@ -685,24 +757,17 @@ const Usuarios = () => {
                       src={`${BASE}${u.fotoUrl}`}
                       alt={u.nombre}
                       className="emp-foto-sm"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "flex";
-                      }}
+                      onError={(e) => { e.target.style.display = "none"; }}
                     />
-                  ) : null}
-                  <div
-                    className="user-avatar"
-                    style={{ display: u.fotoUrl ? "none" : "flex" }}
-                  >
-                    {SEXO_ICON[u.sexo] || "🧑"}
-                  </div>
+                  ) : (
+                    <UserAvatar nombre={u.nombre} apellido={u.apellido} />
+                  )}
                   <div>
                     <div className="user-name">{u.nombre} {u.apellido}</div>
                     <div className="user-email">{u.email}</div>
                     {u.fechaInicioActividades && (
                       <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        🏢 {calcularAntigüedad(u.fechaInicioActividades)}
+                        <IcoBuilding />{calcularAntigüedad(u.fechaInicioActividades)}
                       </div>
                     )}
                   </div>
@@ -712,7 +777,7 @@ const Usuarios = () => {
                 <span className="capitalize">{u.sexo}</span> · {u.edad} años
                 {u.fechaNacimiento && (
                   <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                    🎂 {new Date(u.fechaNacimiento + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
+                    <IcoCake />{new Date(u.fechaNacimiento + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
                   </div>
                 )}
               </td>
@@ -735,14 +800,14 @@ const Usuarios = () => {
                 <td>
                   <div className="action-btns">
                     <button
-                      className="btn btn-secondary btn-xs"
+                      className="btn btn-secondary btn-xs icon-btn"
                       onClick={() => abrirEditar(u)}
                       title="Editar"
-                    >✏️</button>
+                    ><IcoEdit /></button>
                     {/* Reset 2FA — solo super_admin y agente_soporte_ti, solo para empleados (no para uno mismo) */}
                     {u.totpHabilitado && ["super_admin", "agente_soporte_ti", "administrador_general"].includes(rolActual) && u.id !== usuarioActual?.id && (
                       <button
-                        className="btn btn-warning btn-xs"
+                        className="btn btn-warning btn-xs icon-btn"
                         title="Restablecer 2FA"
                         onClick={async () => {
                           if (!(await confirmar(`¿Restablecer el 2FA de ${u.nombre} ${u.apellido}? Deberá configurarlo de nuevo.`, "Confirmar", "warning"))) return;
@@ -752,14 +817,14 @@ const Usuarios = () => {
                             toastExito(`2FA restablecido para ${u.nombre}`);
                           } catch (err) { toastError(err); }
                         }}
-                      >🔓 2FA</button>
+                      ><IcoShield /><span style={{ marginLeft: 4, fontSize: "0.75rem" }}>2FA</span></button>
                     )}
-                    {u.activo && ROLES_ELIMINAR.includes(rolActual) && u.id !== usuarioActual?.id && (
+                    {u.activo && ROLES_ELIMINAR.includes(rolActual) && u.id !== usuarioActual?.id && usuarioActual?.puedeEditar !== false && (
                       <button
-                        className="btn btn-danger btn-xs"
-                        onClick={() => handleEliminar(u.id)}
+                        className="btn btn-danger btn-xs icon-btn"
+                        onClick={() => handleEliminar(u.id, `${u.nombre} ${u.apellido}`)}
                         title="Eliminar"
-                      >🗑️</button>
+                      ><IcoTrash /></button>
                     )}
                   </div>
                 </td>
@@ -830,9 +895,9 @@ const Usuarios = () => {
     tabs.push({ id: "todos", label: `Todos (${totalUsuarios})` });
   }
   if (puedeVerCorporativo) {
-    tabs.push({ id: "corporativo", label: `🏛️ Corporativo` });
+    tabs.push({ id: "corporativo", label: "Corporativo" });
   }
-  tabs.push({ id: "sucursales", label: `🏢 Sucursales` });
+  tabs.push({ id: "sucursales", label: "Sucursales" });
 
   if (cargando) return <div className="loading">Cargando empleados…</div>;
 
@@ -845,8 +910,9 @@ const Usuarios = () => {
         </div>
         {puedeGestionar && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-secondary" onClick={() => { setResultadoImport(null); setCsvFile(null); setModalImportar(true); }}>
-              📥 Importar CSV
+            <button className="btn btn-secondary" onClick={() => { setResultadoImport(null); setCsvFile(null); setModalImportar(true); }} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Importar CSV
             </button>
             <button className="btn btn-primary" onClick={abrirCrear}>
               + Nuevo empleado
@@ -941,7 +1007,7 @@ const Usuarios = () => {
                   <img src={fotoPreview} alt="Vista previa" className="emp-foto-preview" />
                 ) : (
                   <div className="foto-upload-placeholder">
-                    <span style={{ fontSize: "2rem" }}>📷</span>
+                    <span style={{ color: "var(--text2)", opacity: 0.7 }}><IcoCam /></span>
                     <span>Clic para subir foto</span>
                     <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>
                       JPG, PNG o WebP · máx 5 MB
@@ -950,7 +1016,7 @@ const Usuarios = () => {
                 )}
                 {fotoPreview && (
                   <div className="foto-overlay">
-                    <span>📷 Cambiar foto</span>
+                    <span><IcoCam /> Cambiar</span>
                   </div>
                 )}
               </div>
@@ -1092,7 +1158,7 @@ const Usuarios = () => {
                 <div className="form-group">
                   <label>Rol en el sistema *</label>
                   <select name="rol" value={form.rol} onChange={handleChange} required>
-                    {ROLES_DISPONIBLES.map((r) => (
+                    {rolesDisponibles.map((r) => (
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
                   </select>
@@ -1245,6 +1311,24 @@ const Usuarios = () => {
                   ))}
                 </div>
               )}
+
+              {/* Desarrollo Organizacional */}
+              <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1rem", marginTop: "0.5rem" }}>
+                <p style={{ fontWeight: "600", marginBottom: "0.75rem", color: "var(--text2)", fontSize: "0.85rem" }}>
+                  🧠 Desarrollo Organizacional
+                </p>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={!!form.evaluacionesHabilitadas}
+                    onChange={(e) => setForm((prev) => ({ ...prev, evaluacionesHabilitadas: e.target.checked }))}
+                  />
+                  Habilitar evaluaciones para este empleado
+                </label>
+                <small style={{ color: "var(--text-muted)", display: "block", marginTop: 4 }}>
+                  Si está activo, el empleado aparecerá en la sección de Desarrollo Organizacional para recibir evaluaciones.
+                </small>
+              </div>
 
               <div className="modal-actions">
                 <button

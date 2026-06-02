@@ -15,6 +15,7 @@ const { v4: uuidv4 } = require("uuid");
 const store     = require("../data/store");
 const { generarToken, verificarToken, compararPassword, hashPassword } = require("../middleware/auth");
 const { ROLES } = require("../middleware/roles");
+const { pool, DB_ENABLED } = require("../config/db");
 const notifService  = require("../services/notificaciones.service");
 const emailService  = require("../services/email.service");
 
@@ -99,8 +100,9 @@ function getTOTPUri(secret, email, issuer = "Kronos") {
 // ─── Protección brute-force: bloqueo de cuenta por intentos fallidos ─────────
 // Map: email.toLowerCase() → { count: number, lockedUntil: timestamp|null }
 const loginAttempts = new Map();
-const LOCK_THRESHOLD    = 5;                // intentos fallidos antes de bloquear
-const LOCK_DURATION_MS  = 15 * 60 * 1000;  // 15 minutos de bloqueo
+// ⚠️  DESHABILITADO EN DESARROLLO — cambiar a 5 en producción
+const LOCK_THRESHOLD    = Infinity;         // sin bloqueo en desarrollo
+const LOCK_DURATION_MS  = 15 * 60 * 1000;  // 15 minutos de bloqueo (producción)
 
 /** Limpia entradas expiradas cada 30 minutos */
 setInterval(() => {
@@ -119,6 +121,26 @@ setInterval(() => {
     if (data.expiresAt < ahora) pending2FA.delete(key);
   }
 }, 5 * 60 * 1000);
+
+// ─── Helper: obtener puedeEditar del rol ──────────────────────────────────────
+/**
+ * Consulta si el rol del usuario tiene `puede_editar = 1` en la tabla roles.
+ * Devuelve `true` como default seguro si la DB no está disponible.
+ */
+async function fetchPuedeEditar(rolClave) {
+  try {
+    if (DB_ENABLED && pool) {
+      const [rows] = await pool.query(
+        "SELECT puede_editar FROM roles WHERE clave = ? LIMIT 1",
+        [rolClave]
+      );
+      if (rows.length > 0) return rows[0].puede_editar === 1;
+    }
+  } catch (_) { /* silencioso */ }
+  // Roles base que siempre pueden editar aunque la DB falle
+  const SIEMPRE_EDITAN = ["super_admin", "administrador_general", "agente_soporte_ti"];
+  return SIEMPRE_EDITAN.includes(rolClave);
+}
 
 // ─── Reset tokens (en memoria, TTL 1 hora) ────────────────────────────────────
 // token (UUID) → { userId, expires: Date }
@@ -224,13 +246,15 @@ router.post("/login", async (req, res) => {
     });
   }
 
+  const puedeEditar = await fetchPuedeEditar(usuario.rol);
   const token = generarToken(
     usuario,
-    usuario.rol === ROLES.MEDICO_DE_GUARDIA ? sucursalIdLogin : null
+    usuario.rol === ROLES.MEDICO_DE_GUARDIA ? sucursalIdLogin : null,
+    puedeEditar
   );
 
   const { password: _, ...datosUsuario } = usuario;
-  return res.json({ token, usuario: datosUsuario });
+  return res.json({ token, usuario: { ...datosUsuario, puedeEditar } });
 });
 
 // ─── Perfil ───────────────────────────────────────────────────────────────────
@@ -394,9 +418,10 @@ router.post("/2fa/verify-login", async (req, res) => {
 
   pending2FA.delete(challengeId);
 
-  const token = generarToken(usuario, datos.sucursalIdLogin);
+  const puedeEditar = await fetchPuedeEditar(usuario.rol);
+  const token = generarToken(usuario, datos.sucursalIdLogin, puedeEditar);
   const { password: _, ...datosUsuario } = usuario;
-  return res.json({ token, usuario: datosUsuario });
+  return res.json({ token, usuario: { ...datosUsuario, puedeEditar } });
 });
 
 // ─── 2FA: Configurar por primera vez ─────────────────────────────────────────

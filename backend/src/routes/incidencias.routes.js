@@ -70,7 +70,7 @@ router.get("/tipos", (req, res) => {
 });
 
 /** POST /api/incidencias/tipos — Crear tipo (super_admin) */
-router.post("/tipos", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
+router.post("/tipos", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN), (req, res) => {
   const { nombre, descripcion, requiereArchivo, categoriaBloqueo } = req.body;
   if (!nombre) return res.status(400).json({ error: "El nombre es obligatorio" });
 
@@ -89,7 +89,7 @@ router.post("/tipos", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
 });
 
 /** PUT /api/incidencias/tipos/:id — Actualizar tipo */
-router.put("/tipos/:id", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
+router.put("/tipos/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN), (req, res) => {
   const { nombre, descripcion, requiereArchivo, activo, categoriaBloqueo } = req.body;
   const actualizado = store.updateTipoIncidencia(req.params.id, {
     ...(nombre !== undefined && { nombre }),
@@ -103,7 +103,7 @@ router.put("/tipos/:id", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
 });
 
 /** DELETE /api/incidencias/tipos/:id — Desactivar tipo */
-router.delete("/tipos/:id", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
+router.delete("/tipos/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN), (req, res) => {
   const ok = store.deleteTipoIncidencia(req.params.id);
   if (!ok) return res.status(404).json({ error: "Tipo no encontrado" });
   return res.json({ mensaje: "Tipo desactivado" });

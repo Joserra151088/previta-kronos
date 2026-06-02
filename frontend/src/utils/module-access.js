@@ -4,11 +4,13 @@ const DEFAULT_MODULES_BY_ROLE = {
     "dashboard", "eventos", "incidencias", "reportes", "sucursales", "empleados",
     "grupos", "mapa", "administracion", "auditoria", "logs", "notificaciones",
     "vacaciones", "incapacidades", "calendario", "organigrama", "horarios", "licencias",
+    "desarrollo_organizacional",
   ],
   super_admin: [
     "dashboard", "eventos", "incidencias", "reportes", "sucursales", "empleados",
     "grupos", "mapa", "administracion", "auditoria", "logs", "notificaciones",
     "vacaciones", "incapacidades", "calendario", "organigrama", "horarios", "licencias",
+    "desarrollo_organizacional",
   ],
   agente_soporte_ti: [
     "dashboard", "eventos", "incidencias", "reportes", "sucursales", "empleados",
@@ -30,6 +32,7 @@ const DEFAULT_MODULES_BY_ROLE = {
   visor_reportes: ["dashboard", "reportes", "mapa", "notificaciones"],
   medico_titular:   ["dashboard", "incidencias", "notificaciones"],
   medico_de_guardia: ["dashboard", "incidencias", "notificaciones"],
+  desarrollo_organizacional: ["dashboard", "desarrollo_organizacional", "notificaciones"],
 };
 
 export const getModulesForUser = (usuario) => {

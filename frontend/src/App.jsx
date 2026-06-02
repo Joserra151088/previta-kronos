@@ -25,6 +25,9 @@ import Logs from "./pages/Logs";
 import Horarios from "./pages/Horarios";
 import Licencias from "./pages/Licencias";
 import Anuncios from "./pages/Anuncios";
+import DesarrolloOrganizacional from "./pages/DesarrolloOrganizacional";
+import NineBox from "./pages/NineBox";
+import Sync from "./pages/Sync";
 
 const App = () => (
   <AuthProvider>
@@ -118,6 +121,19 @@ const App = () => (
           } />
           <Route path="licencias" element={
             <ProtectedRoute moduleKey="licencias"><Licencias /></ProtectedRoute>
+          } />
+          <Route path="sync" element={
+            <ProtectedRoute moduleKey="administracion"><Sync /></ProtectedRoute>
+          } />
+          <Route path="desarrollo-organizacional" element={
+            <ProtectedRoute moduleKey="desarrollo_organizacional">
+              <DesarrolloOrganizacional />
+            </ProtectedRoute>
+          } />
+          <Route path="nine-box" element={
+            <ProtectedRoute moduleKey="desarrollo_organizacional">
+              <NineBox />
+            </ProtectedRoute>
           } />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

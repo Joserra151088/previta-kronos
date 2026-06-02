@@ -11,9 +11,10 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000, // Puerto del frontend en desarrollo
+    host: '0.0.0.0',           // Expone en la red local
+    port: 3000,
+    hmr: { clientPort: 3000 }, // Evita errores de WebSocket en red
     proxy: {
-      // Redirige /api/* al servidor backend en puerto 4000
       "/api": {
         target: "http://localhost:4000",
         changeOrigin: true,

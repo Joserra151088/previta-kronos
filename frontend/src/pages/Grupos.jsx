@@ -23,6 +23,7 @@ import { toastError, confirmar } from "../utils/toast";
 const Grupos = () => {
   const { usuario } = useAuth();
   const esSuperAdmin = usuario?.rol === "super_admin";
+  const puedeEditar  = usuario?.puedeEditar !== false;
 
   const [grupos,      setGrupos]      = useState([]);
   const [supervisores,setSupervisores]= useState([]);
@@ -124,7 +125,7 @@ const Grupos = () => {
             Agrupa sucursales bajo un supervisor para centralizar la aprobación de incidencias
           </p>
         </div>
-        {esSuperAdmin && (
+        {esSuperAdmin && puedeEditar && (
           <button className="btn btn-primary" onClick={() => abrirModal()}>
             + Nuevo Grupo
           </button>
@@ -171,7 +172,7 @@ const Grupos = () => {
                 <button className="btn btn-sm btn-secondary" onClick={() => abrirDetalle(g)}>
                   🏢 Gestionar sucursales
                 </button>
-                {esSuperAdmin && (
+                {esSuperAdmin && puedeEditar && (
                   <>
                     <button className="btn btn-sm btn-secondary" onClick={() => abrirModal(g)}>✏️ Editar</button>
                     <button className="btn btn-sm btn-danger" onClick={() => handleDesactivar(g.id)}>Desactivar</button>

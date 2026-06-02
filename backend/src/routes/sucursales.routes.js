@@ -40,7 +40,7 @@ router.put("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLE
   return res.json(actualizada);
 });
 
-router.delete("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI), (req, res) => {
+router.delete("/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI), (req, res) => {
   // Validar que no haya empleados activos asignados
   const usuariosAsignados = store.getUsuarios({ sucursalId: req.params.id, activo: true });
   if (usuariosAsignados.length > 0) {
@@ -50,7 +50,7 @@ router.delete("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI), 
   }
   const ok = store.deleteSucursal(req.params.id);
   if (!ok) return res.status(404).json({ error: "Sucursal no encontrada" });
-  return res.json({ mensaje: "Sucursal desactivada correctamente" });
+  return res.json({ mensaje: "Sucursal eliminada correctamente" });
 });
 
 module.exports = router;

@@ -336,3 +336,74 @@ export const verifyLogin2FA = async (challengeId, code) => {
 };
 
 export const reset2FA = (id) => request(`/usuarios/${id}/2fa`, { method: "DELETE" });
+
+// ─── Desarrollo Organizacional ─────────────────────────────────────────────────
+
+// Competencias
+export const getDoCompetencias = () => request("/do/competencias");
+export const crearDoCompetencia = (data) => request("/do/competencias", { method: "POST", body: data });
+export const actualizarDoCompetencia = (id, data) => request(`/do/competencias/${id}`, { method: "PUT", body: data });
+export const eliminarDoCompetencia = (id) => request(`/do/competencias/${id}`, { method: "DELETE" });
+
+// Evaluaciones por Competencias
+export const getDoEvalCompetencias = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/evaluaciones-competencias${params ? "?" + params : ""}`);
+};
+export const crearDoEvalCompetencia = (data) => request("/do/evaluaciones-competencias", { method: "POST", body: data });
+export const actualizarDoEvalCompetencia = (id, data) => request(`/do/evaluaciones-competencias/${id}`, { method: "PUT", body: data });
+
+// Evaluaciones 360
+export const getDoEval360 = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/evaluaciones-360${params ? "?" + params : ""}`);
+};
+export const crearDoEval360 = (data) => request("/do/evaluaciones-360", { method: "POST", body: data });
+export const actualizarDoEval360 = (id, data) => request(`/do/evaluaciones-360/${id}`, { method: "PUT", body: data });
+
+// Evaluaciones 1 a 1
+export const getDoEval1a1 = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/evaluaciones-1a1${params ? "?" + params : ""}`);
+};
+export const crearDoEval1a1 = (data) => request("/do/evaluaciones-1a1", { method: "POST", body: data });
+export const actualizarDoEval1a1 = (id, data) => request(`/do/evaluaciones-1a1/${id}`, { method: "PUT", body: data });
+
+// Satisfacción de Clientes
+export const getDoSatisfaccion = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/satisfaccion-clientes${params ? "?" + params : ""}`);
+};
+export const crearDoSatisfaccion = (data) => request("/do/satisfaccion-clientes", { method: "POST", body: data });
+
+// Indicadores Estratégicos
+export const getDoIndicadores = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/indicadores${params ? "?" + params : ""}`);
+};
+export const crearDoIndicador = (data) => request("/do/indicadores", { method: "POST", body: data });
+export const actualizarDoIndicador = (id, data) => request(`/do/indicadores/${id}`, { method: "PUT", body: data });
+export const eliminarDoIndicador = (id) => request(`/do/indicadores/${id}`, { method: "DELETE" });
+
+// Valores de Indicadores
+export const getDoIndicadoresValores = (filtros = {}) => {
+  const params = new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v]) => v))).toString();
+  return request(`/do/indicadores-valores${params ? "?" + params : ""}`);
+};
+export const crearDoIndicadorValor = (data) => request("/do/indicadores-valores", { method: "POST", body: data });
+
+// NineBox
+export const getDoNineBox = (periodo) => request(`/do/ninebox?periodo=${encodeURIComponent(periodo)}`);
+
+// Plantillas 1 a 1
+export const getDoPlantillas1a1 = () => request("/do/plantillas-1a1");
+export const crearDoPlantilla1a1 = (data) => request("/do/plantillas-1a1", { method: "POST", body: data });
+export const actualizarDoPlantilla1a1 = (id, data) => request(`/do/plantillas-1a1/${id}`, { method: "PUT", body: data });
+export const eliminarDoPlantilla1a1 = (id) => request(`/do/plantillas-1a1/${id}`, { method: "DELETE" });
+
+
+// ─── Roles ─────────────────────────────────────────────────────────────────────
+export const getRoles = () => request("/roles");
+export const crearRol = (data) => request("/roles", { method: "POST", body: data });
+export const actualizarRol = (clave, data) => request(`/roles/${clave}`, { method: "PUT", body: data });
+export const eliminarRol = (clave) => request(`/roles/${clave}`, { method: "DELETE" });

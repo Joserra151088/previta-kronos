@@ -29,6 +29,8 @@ const anunciosRoutes = require("./src/routes/anuncios.routes");
 const calendarioRoutes = require("./src/routes/calendario.routes");
 const vacacionesRoutes = require("./src/routes/vacaciones.routes");
 const areasRoutes = require("./src/routes/areas.routes");
+const doRoutes = require("./src/routes/do.routes");
+const rolesRoutes = require("./src/routes/roles.routes");
 const { auditarAccion } = require("./src/middleware/auditoria.middleware");
 const notifService = require("./src/services/notificaciones.service");
 const logsService  = require("./src/services/logs.service");
@@ -44,10 +46,15 @@ const ALLOWED_ORIGINS = (process.env.FRONTEND_URL || "http://localhost:3000")
   .map((s) => s.trim())
   .filter(Boolean);
 
+// Regex para permitir cualquier IP de red local (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+const LOCAL_NETWORK_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
+
 const corsOptions = {
   origin: (origin, callback) => {
     // Permitir peticiones sin origin (Postman, curl, server-to-server)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    if (LOCAL_NETWORK_REGEX.test(origin)) return callback(null, true);
     callback(new Error(`CORS bloqueado: Origin '${origin}' no está en la lista blanca`));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -85,7 +92,14 @@ const loginLimiter = rateLimit({
 });
 
 const io = new Server(server, {
-  cors: { origin: ALLOWED_ORIGINS, methods: ["GET", "POST"] },
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin) || LOCAL_NETWORK_REGEX.test(origin))
+        return callback(null, true);
+      callback(new Error('Socket.io CORS bloqueado'));
+    },
+    methods: ["GET", "POST"]
+  },
 });
 
 notifService.setIo(io);
@@ -124,8 +138,9 @@ app.use((req, _res, next) => { logsService.incrementRequests(); next(); });
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Rate limiting granular para auth
-app.use("/api/auth/login", loginLimiter);
-app.use("/api/auth", authLimiter);
+// ⚠️  DESHABILITADO EN DESARROLLO — habilitar en producción
+// app.use("/api/auth/login", loginLimiter);
+// app.use("/api/auth", authLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/sucursales", sucursalesRoutes);
 app.use("/api/usuarios", usuariosRoutes);
@@ -144,6 +159,9 @@ app.use("/api/anuncios", anunciosRoutes);
 app.use("/api/calendario", calendarioRoutes);
 app.use("/api/vacaciones", vacacionesRoutes);
 app.use("/api/areas", areasRoutes);
+app.use("/api/do", doRoutes);
+app.use("/api/roles", rolesRoutes);
+app.use("/api/sync",  require("./src/routes/sync.routes"));
 app.get("/api/health", (req, res) =>
   res.json({
     status: "OK",
@@ -168,9 +186,9 @@ app.use((err, req, res, _next) => {
 const startServer = async () => {
   await store.initializeFromDatabase();
 
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     const dbStatus = store.getDatabaseStatus();
-    console.log(`\nServidor en http://localhost:${PORT}`);
+    console.log(`\nServidor en http://0.0.0.0:${PORT}`);
     console.log("Socket.io activo");
     console.log("Archivos en /uploads");
 

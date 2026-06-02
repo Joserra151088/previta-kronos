@@ -16,7 +16,7 @@ const { requireRoles, ROLES } = require("../middleware/roles");
 router.use(verificarToken);
 
 /** GET /api/grupos — Lista grupos (supervisor ve solo los suyos) */
-router.get("/", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
+router.get("/", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
   const filtros = {};
   if (req.user.rol === ROLES.SUPERVISOR_SUCURSALES) filtros.supervisorId = req.user.id;
 
@@ -37,7 +37,7 @@ router.get("/", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLES.S
 });
 
 /** GET /api/grupos/:id — Detalle de grupo con sucursales */
-router.get("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
+router.get("/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
   const grupo = store.getGrupoById(req.params.id);
   if (!grupo) return res.status(404).json({ error: "Grupo no encontrado" });
   if (req.user.rol === ROLES.SUPERVISOR_SUCURSALES && grupo.supervisorId !== req.user.id) {
@@ -53,7 +53,7 @@ router.get("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI, ROLE
 });
 
 /** POST /api/grupos — Crear grupo (super_admin) */
-router.post("/", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
+router.post("/", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN), (req, res) => {
   const { nombre, supervisorId, sucursalIds } = req.body;
   if (!nombre || !supervisorId) {
     return res.status(400).json({ error: "nombre y supervisorId son obligatorios" });
@@ -71,7 +71,7 @@ router.post("/", requireRoles(ROLES.SUPER_ADMIN), (req, res) => {
 });
 
 /** PUT /api/grupos/:id — Actualizar nombre / supervisor */
-router.put("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
+router.put("/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
   const grupo = store.getGrupoById(req.params.id);
   if (!grupo) return res.status(404).json({ error: "Grupo no encontrado" });
   if (req.user.rol === ROLES.SUPERVISOR_SUCURSALES && grupo.supervisorId !== req.user.id) {
@@ -86,7 +86,7 @@ router.put("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_SUCURSALES),
 });
 
 /** PUT /api/grupos/:id/sucursales — Reemplaza la lista de sucursales del grupo */
-router.put("/:id/sucursales", requireRoles(ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
+router.put("/:id/sucursales", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_SUCURSALES), (req, res) => {
   const grupo = store.getGrupoById(req.params.id);
   if (!grupo) return res.status(404).json({ error: "Grupo no encontrado" });
   if (req.user.rol === ROLES.SUPERVISOR_SUCURSALES && grupo.supervisorId !== req.user.id) {
@@ -106,7 +106,7 @@ router.put("/:id/sucursales", requireRoles(ROLES.SUPER_ADMIN, ROLES.SUPERVISOR_S
 });
 
 /** DELETE /api/grupos/:id — Desactivar grupo (super_admin, agente_soporte_ti) */
-router.delete("/:id", requireRoles(ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI), (req, res) => {
+router.delete("/:id", requireRoles(ROLES.ADMINISTRADOR_GENERAL, ROLES.SUPER_ADMIN, ROLES.AGENTE_SOPORTE_TI), (req, res) => {
   // Validar que no haya usuarios asignados a este grupo
   const usuariosAsignados = store.getUsuarios({ grupoId: req.params.id, activo: true });
   if (usuariosAsignados.length > 0) {

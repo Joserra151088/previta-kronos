@@ -25,12 +25,21 @@ export const AuthProvider = ({ children }) => {
   const [vistaActual, setVistaActual] = useState("admin"); // "admin" | "empleado"
 
   const cargarSesion = async () => {
+    // Leer puedeEditar desde el JWT (sin verificar firma – solo decodificar claims)
+    let puedeEditar = true;
+    try {
+      const token   = localStorage.getItem("token");
+      const payload = token ? JSON.parse(atob(token.split(".")[1])) : {};
+      // Si el claim existe tomarlo; si no existe (tokens viejos) asumir true
+      puedeEditar = payload.puedeEditar !== false;
+    } catch (_) { /* token malformado o ausente */ }
+
     const perfil = await getMe();
     try {
       const permisos = await getMisModulos();
-      return { ...perfil, modulos: permisos.modulos || getModulesForUser(perfil) };
+      return { ...perfil, modulos: permisos.modulos || getModulesForUser(perfil), puedeEditar };
     } catch {
-      return { ...perfil, modulos: getModulesForUser(perfil) };
+      return { ...perfil, modulos: getModulesForUser(perfil), puedeEditar };
     }
   };
 

@@ -9,7 +9,7 @@ import { io } from "socket.io-client";
 
 const SocketContext = createContext(null);
 
-import { SERVER_URL as SOCKET_URL } from "../utils/config.js";
+const SOCKET_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 export const SocketProvider = ({ children, usuario }) => {
   const socketRef = useRef(null);

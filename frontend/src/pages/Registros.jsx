@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   getRegistros, getReporte, getSucursales, getRegistrosHoy,
@@ -81,9 +82,16 @@ const calcularTiempoActual = (regs) => {
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 const Registros = () => {
-  const { usuario } = useAuth();
-  const esGestion   = ROLES_GESTION.includes(usuario?.rol);
-  const esAprobador = ROLES_APROBACION.includes(usuario?.rol);
+  const { usuario, vistaActual } = useAuth();
+  const { pathname } = useLocation();
+
+  // Vista empleado si:
+  //   - El rol no tiene permisos de gestión, O
+  //   - El admin accede desde /mis-registros (su propia vista), O
+  //   - El admin activó la vista "empleado" desde el menú de perfil
+  const esMisRegistros = pathname.includes("mis-registros");
+  const esGestion   = ROLES_GESTION.includes(usuario?.rol) && !esMisRegistros && vistaActual !== "empleado";
+  const esAprobador = ROLES_APROBACION.includes(usuario?.rol) && !esMisRegistros && vistaActual !== "empleado";
 
   const [sucursales,     setSucursales]     = useState([]);
   const [empleados,      setEmpleados]      = useState([]);

@@ -9,7 +9,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useEmpresa } from "../context/EmpresaContext";
 import { resetPassword } from "../utils/api";
 
-import { SERVER_URL as BASE } from "../utils/config.js";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 const ResetPassword = () => {
   const [searchParams]      = useSearchParams();

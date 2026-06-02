@@ -34,8 +34,26 @@ const getExistingTables = async () => {
   return new Set(rows.map((row) => Object.values(row)[0]));
 };
 
+// Pool secundario — Athenasys (solo si ATHENASYS_DB_NAME está configurado)
+const athenasysPool = process.env.ATHENASYS_DB_NAME
+  ? mysql.createPool({
+      host:             process.env.DB_HOST     || "127.0.0.1",
+      port:             Number(process.env.DB_PORT || 3306),
+      user:             process.env.DB_USER     || "root",
+      password:         process.env.DB_PASSWORD || "",
+      database:         process.env.ATHENASYS_DB_NAME,
+      waitForConnections: true,
+      connectionLimit:  5,
+      queueLimit:       0,
+      charset:          "utf8mb4",
+      dateStrings:      true,
+      ssl:              { rejectUnauthorized: false },
+    })
+  : null;
+
 module.exports = {
   pool,
+  athenasysPool,
   DB_ENABLED,
   testConnection,
   getExistingTables,

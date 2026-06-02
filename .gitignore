@@ -36,3 +36,6 @@ Thumbs.db
 
 # Herramientas de desarrollo local
 .claude/
+
+# Proyecto externo (inventario-ti) anidado por accidente — NO pertenece a KronOS
+jestradaProyectosathenasys/

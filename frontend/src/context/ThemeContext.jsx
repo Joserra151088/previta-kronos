@@ -11,7 +11,7 @@ const STORAGE_WALLPAPER = "app_wallpaper";
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setThemeState] = useState(
-    () => localStorage.getItem(STORAGE_KEY) || "dark"
+    () => localStorage.getItem(STORAGE_KEY) || "light"
   );
   const [wallpaper, setWallpaperState] = useState(
     () => localStorage.getItem(STORAGE_WALLPAPER) || ""
