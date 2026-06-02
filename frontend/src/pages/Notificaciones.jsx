@@ -12,7 +12,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getUsuarios, enviarNotificacion, getAnuncios, getAnunciosAdmin, crearAnuncioConImagen, actualizarAnuncioConImagen, eliminarAnuncio } from "../utils/api";
 import { toastError, toastExito, toastAviso, confirmar } from "../utils/toast";
 
-const BASE = "http://localhost:4000";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 const ROLES_ENVIO  = ["super_admin", "agente_soporte_ti", "supervisor_sucursales", "agente_control_asistencia"];
 const ROLES_ADMIN  = ["super_admin", "administrador_general"];

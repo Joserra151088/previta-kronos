@@ -224,7 +224,7 @@ function calcularAntigüedad(fechaInicioActividades) {
   return "< 1 mes";
 }
 
-const BASE = "http://localhost:4000";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 const ROLES_DISPONIBLES_DEFAULT = [
   { value: "medico_titular",            label: "Médico Titular" },
@@ -262,7 +262,68 @@ const FORM_VACIO = {
   evaluacionesHabilitadas: true,
 };
 
-const SEXO_ICON = { masculino: "👨", femenino: "👩", otro: "🧑" };
+// ─── Iconos SVG para acciones ─────────────────────────────────────────────
+const IcoEdit = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+const IcoTrash = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+    <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+  </svg>
+);
+const IcoShield = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/>
+  </svg>
+);
+const IcoCam = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+    <circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+const IcoBuilding = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 3, opacity: 0.6 }}>
+    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 22V12h6v10"/><path d="M3 9h18"/>
+  </svg>
+);
+const IcoCake = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline", verticalAlign: "middle", marginRight: 3, opacity: 0.6 }}>
+    <path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v2"/><path d="M12 8v2"/><path d="M17 8v2"/><path d="M7 4l.5 1"/><path d="M12 4l.5 1"/><path d="M17 4l.5 1"/>
+  </svg>
+);
+
+// ─── Avatar con iniciales coloreadas ──────────────────────────────────────
+const AVATAR_COLORS = [
+  "#4f7ec7","#5baa6b","#c47a3e","#9561b0",
+  "#c45b5b","#2e9fb3","#7a8c5b","#c47a7a","#3e7db3","#7a6baa",
+];
+function avatarColor(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function UserAvatar({ nombre = "", apellido = "", fotoUrl, size = 36 }) {
+  const initials = `${(nombre[0] || "").toUpperCase()}${(apellido[0] || "").toUpperCase()}` || "?";
+  const bg = avatarColor(`${nombre}${apellido}`);
+  if (fotoUrl) return null; // la <img> ya se renderiza por separado
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%", background: bg,
+      color: "#fff", fontWeight: 700, fontSize: Math.round(size * 0.36),
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexShrink: 0, letterSpacing: "-0.5px", userSelect: "none",
+      border: "2px solid rgba(255,255,255,0.18)",
+    }}>
+      {initials}
+    </div>
+  );
+}
 
 const ROL_LABEL = {
   super_admin: "Super Admin",
@@ -696,24 +757,17 @@ const Usuarios = () => {
                       src={`${BASE}${u.fotoUrl}`}
                       alt={u.nombre}
                       className="emp-foto-sm"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.nextSibling.style.display = "flex";
-                      }}
+                      onError={(e) => { e.target.style.display = "none"; }}
                     />
-                  ) : null}
-                  <div
-                    className="user-avatar"
-                    style={{ display: u.fotoUrl ? "none" : "flex" }}
-                  >
-                    {SEXO_ICON[u.sexo] || "🧑"}
-                  </div>
+                  ) : (
+                    <UserAvatar nombre={u.nombre} apellido={u.apellido} />
+                  )}
                   <div>
                     <div className="user-name">{u.nombre} {u.apellido}</div>
                     <div className="user-email">{u.email}</div>
                     {u.fechaInicioActividades && (
                       <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        🏢 {calcularAntigüedad(u.fechaInicioActividades)}
+                        <IcoBuilding />{calcularAntigüedad(u.fechaInicioActividades)}
                       </div>
                     )}
                   </div>
@@ -723,7 +777,7 @@ const Usuarios = () => {
                 <span className="capitalize">{u.sexo}</span> · {u.edad} años
                 {u.fechaNacimiento && (
                   <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                    🎂 {new Date(u.fechaNacimiento + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
+                    <IcoCake />{new Date(u.fechaNacimiento + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
                   </div>
                 )}
               </td>
@@ -746,14 +800,14 @@ const Usuarios = () => {
                 <td>
                   <div className="action-btns">
                     <button
-                      className="btn btn-secondary btn-xs"
+                      className="btn btn-secondary btn-xs icon-btn"
                       onClick={() => abrirEditar(u)}
                       title="Editar"
-                    >✏️</button>
+                    ><IcoEdit /></button>
                     {/* Reset 2FA — solo super_admin y agente_soporte_ti, solo para empleados (no para uno mismo) */}
                     {u.totpHabilitado && ["super_admin", "agente_soporte_ti", "administrador_general"].includes(rolActual) && u.id !== usuarioActual?.id && (
                       <button
-                        className="btn btn-warning btn-xs"
+                        className="btn btn-warning btn-xs icon-btn"
                         title="Restablecer 2FA"
                         onClick={async () => {
                           if (!(await confirmar(`¿Restablecer el 2FA de ${u.nombre} ${u.apellido}? Deberá configurarlo de nuevo.`, "Confirmar", "warning"))) return;
@@ -763,14 +817,14 @@ const Usuarios = () => {
                             toastExito(`2FA restablecido para ${u.nombre}`);
                           } catch (err) { toastError(err); }
                         }}
-                      >🔓 2FA</button>
+                      ><IcoShield /><span style={{ marginLeft: 4, fontSize: "0.75rem" }}>2FA</span></button>
                     )}
                     {u.activo && ROLES_ELIMINAR.includes(rolActual) && u.id !== usuarioActual?.id && usuarioActual?.puedeEditar !== false && (
                       <button
-                        className="btn btn-danger btn-xs"
+                        className="btn btn-danger btn-xs icon-btn"
                         onClick={() => handleEliminar(u.id, `${u.nombre} ${u.apellido}`)}
                         title="Eliminar"
-                      >🗑️</button>
+                      ><IcoTrash /></button>
                     )}
                   </div>
                 </td>
@@ -841,9 +895,9 @@ const Usuarios = () => {
     tabs.push({ id: "todos", label: `Todos (${totalUsuarios})` });
   }
   if (puedeVerCorporativo) {
-    tabs.push({ id: "corporativo", label: `🏛️ Corporativo` });
+    tabs.push({ id: "corporativo", label: "Corporativo" });
   }
-  tabs.push({ id: "sucursales", label: `🏢 Sucursales` });
+  tabs.push({ id: "sucursales", label: "Sucursales" });
 
   if (cargando) return <div className="loading">Cargando empleados…</div>;
 
@@ -856,8 +910,9 @@ const Usuarios = () => {
         </div>
         {puedeGestionar && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-secondary" onClick={() => { setResultadoImport(null); setCsvFile(null); setModalImportar(true); }}>
-              📥 Importar CSV
+            <button className="btn btn-secondary" onClick={() => { setResultadoImport(null); setCsvFile(null); setModalImportar(true); }} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Importar CSV
             </button>
             <button className="btn btn-primary" onClick={abrirCrear}>
               + Nuevo empleado
@@ -952,7 +1007,7 @@ const Usuarios = () => {
                   <img src={fotoPreview} alt="Vista previa" className="emp-foto-preview" />
                 ) : (
                   <div className="foto-upload-placeholder">
-                    <span style={{ fontSize: "2rem" }}>📷</span>
+                    <span style={{ color: "var(--text2)", opacity: 0.7 }}><IcoCam /></span>
                     <span>Clic para subir foto</span>
                     <span style={{ fontSize: "0.75rem", color: "var(--text2)" }}>
                       JPG, PNG o WebP · máx 5 MB
@@ -961,7 +1016,7 @@ const Usuarios = () => {
                 )}
                 {fotoPreview && (
                   <div className="foto-overlay">
-                    <span>📷 Cambiar foto</span>
+                    <span><IcoCam /> Cambiar</span>
                   </div>
                 )}
               </div>

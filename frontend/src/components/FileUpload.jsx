@@ -110,7 +110,7 @@ const FileUpload = ({ onChange, archivoActual, label = "Adjuntar evidencia (imag
 
       {archivoActual && !nombre && (
         <div className="file-upload-existing">
-          <a href={`http://localhost:4000${archivoActual}`} target="_blank" rel="noopener noreferrer">
+          <a href={`${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${archivoActual}`} target="_blank" rel="noopener noreferrer">
             📎 Ver archivo adjunto actual
           </a>
         </div>

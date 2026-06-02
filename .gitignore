@@ -33,3 +33,6 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+
+# Proyecto externo (inventario-ti) anidado por accidente — NO pertenece a KronOS
+jestradaProyectosathenasys/

@@ -261,7 +261,7 @@ const OrgNode = ({ nodo, nivel = 0 }) => {
         {/* Avatar */}
         {nodo.fotoUrl ? (
           <img
-            src={nodo.fotoUrl.startsWith("http") ? nodo.fotoUrl : `http://localhost:4000${nodo.fotoUrl}`}
+            src={nodo.fotoUrl.startsWith("http") ? nodo.fotoUrl : `${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${nodo.fotoUrl}`}
             alt={nodo.nombre}
             style={{ width: 50, height: 50, borderRadius: "50%", objectFit: "cover", marginBottom: 8, border: "2px solid rgba(255,255,255,0.3)" }}
           />

@@ -33,7 +33,7 @@ function guardarLicenciasLS(data) {
 
 const Licencias = () => {
   const { usuario } = useAuth();
-  const esAdmin = usuario?.rol === "administrador_general";
+  const esAdmin = ["administrador_general", "super_admin", "agente_soporte_ti"].includes(usuario?.rol);
 
   const [licencias, setLicencias] = useState(cargarLicenciasLS);
   const [totalUsuarios, setTotalUsuarios] = useState(0);

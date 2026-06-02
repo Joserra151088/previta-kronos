@@ -209,7 +209,7 @@ const Incapacidades = () => {
                     </td>
                     <td>
                       {inc.archivoUrl ? (
-                        <a href={`http://localhost:4000${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
+                        <a href={`${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${inc.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn-link">
                           📄 Ver
                         </a>
                       ) : "—"}
@@ -333,9 +333,9 @@ const Incapacidades = () => {
                   <div className="detail-item detail-full">
                     <label>Documento médico</label>
                     {modalDetalle.archivoMime?.startsWith("image/") ? (
-                      <img src={`http://localhost:4000${modalDetalle.archivoUrl}`} alt="Documento" style={{ maxWidth: "100%", borderRadius: 8 }} />
+                      <img src={`${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${modalDetalle.archivoUrl}`} alt="Documento" style={{ maxWidth: "100%", borderRadius: 8 }} />
                     ) : (
-                      <a href={`http://localhost:4000${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                      <a href={`${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                         📄 Ver documento
                       </a>
                     )}

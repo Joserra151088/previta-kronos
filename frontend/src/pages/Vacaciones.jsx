@@ -364,7 +364,7 @@ const Vacaciones = () => {
                 {modalDetalle.archivoUrl && (
                   <div className="detail-item detail-full">
                     <label>Documento adjunto</label>
-                    <a href={`http://localhost:4000${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                    <a href={`${import.meta.env.VITE_SERVER_URL || "http://localhost:4000"}${modalDetalle.archivoUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                       📄 Ver documento
                     </a>
                   </div>

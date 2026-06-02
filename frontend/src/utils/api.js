@@ -2,7 +2,7 @@
  * api.js - Capa de comunicación con el backend.
  */
 
-const BASE_URL = "http://localhost:4000/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const getToken = () => localStorage.getItem("token");
 

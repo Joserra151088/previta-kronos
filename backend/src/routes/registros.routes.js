@@ -296,12 +296,14 @@ router.post("/", upload.single("foto"), async (req, res) => {
 
   // Determinar sucursal de registro:
   // - Médico de guardia puede pasar sucursalId en el body (o usar la de su sesión)
-  // - Otros roles siempre usan la sucursal de su token
+  // - Otros roles siempre usan la sucursal de su token (con fallback a la BD, por si el token
+  //   fue generado antes de que se asignara la sucursal).
   let sucursalId;
   if (esMedicoGuardia && sucursalIdBody) {
     sucursalId = sucursalIdBody;
   } else {
-    sucursalId = req.user.sucursalId;
+    // Usar el valor del token; si está vacío (token viejo), leer directamente del store.
+    sucursalId = req.user.sucursalId || store.getUsuarioById(req.user.id)?.sucursalId;
   }
 
   if (!sucursalId) {

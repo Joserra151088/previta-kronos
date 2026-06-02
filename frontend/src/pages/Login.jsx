@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { useEmpresa } from "../context/EmpresaContext";
 import { forgotPassword } from "../utils/api";
 
-const BASE = "http://localhost:4000";
+const BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000";
 
 const C = {
   azulOscuro:  "#0d2a42",
